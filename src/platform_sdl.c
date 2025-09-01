@@ -11,13 +11,19 @@ bool plat_init(Platform *p)
         return true;
     }
 
+    // Ensure clean initial state
+    p->window = NULL;
+    p->renderer = NULL;
+    p->texture = NULL;
+
     flag |= plat_display_create(p);      // Create the window object
     flag |= plat_renderer_create(p);     // Create the renderer object
     flag |= plat_texture_create(p);      // Create the texture object
 
     if (flag)
     {
-        // TODO: Cleanup
+        plat_cleanup(p);
+        return true;
     }
     return false;
 }
@@ -53,4 +59,21 @@ bool plat_texture_create(Platform *p)
         return true;
     }
     return false;
+}
+
+void plat_cleanup(Platform *p)
+{
+    if (p->texture) {
+        SDL_DestroyTexture(p->texture);
+        p->texture = NULL;
+    }
+    if (p->renderer) {
+        SDL_DestroyRenderer(p->renderer);
+        p->renderer = NULL;
+    }
+    if (p->window) {
+        SDL_DestroyWindow(p->window);
+        p->window = NULL;
+    }
+    SDL_QuitSubSystem(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
 }
