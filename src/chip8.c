@@ -25,5 +25,259 @@ bool chip8_cycle(Chip8 *p)
 {
     // TODO: Implement cycle loop
     // fetch/decode/execute + update timers
+    
+    // Fetch:
+    uint16_t instruction = fetch_instruction(p);
+    p->pc += 2; // Increment pc
+
+    // Decode instruction:
+    uint16_t NNN = instruction & 0x0FFF;
+    uint8_t NN = instruction & 0x00FF;
+    uint8_t N = instruction & 0x000F;
+    uint8_t X = instruction & 0x0F00;
+    uint8_t Y = instruction & 0X00F0;
+
+    switch (instruction & 0xF000)
+    {
+        case 0x0000:
+            switch (instruction)
+            {
+            case 0x00E0:
+                // TODO: Implement display_clear() (clears the screen)
+                break;
+            case 0x00EE:
+                if(p->sp > 0)
+                    p->sp--;
+                else
+                {
+                    log_msg(LOG_ERROR, "chip8-vm stack underflow at PC=%X", p->pc - 2);
+                    return true; // TODO: Maybe force quit the ROM when this happens (not sure of consequences)
+                }
+                p->pc = p->stack[p->sp - 1];
+                break;
+            default:
+                break;
+            }
+            break;
+        case 0x1000:
+            if (NNN >= CHIP8_MEM_SIZE || NNN < CHIP8_PC_START_INDEX)
+            {
+                log_msg(LOG_ERROR, "illegal jump address: NNN=%X provided at PC=%X", NNN, p->pc - 2);
+                return true;
+            }
+            p->pc = NNN;
+            break;
+        case 0x2000:
+            if (p->sp > CHIP8_STACK_SIZE - 1)
+            {
+                log_msg(LOG_ERROR, "memory stack overflow at PC=%X", p->pc - 2);
+                return true;
+            }
+            p->stack[p->sp++] = p->pc;
+            p->pc = NNN;
+            break;
+        case 0x3000:
+            if (X < CHIP8_REGISTER_COUNT)
+            {
+                if (p->V[X] == NN)
+                {
+                    p->pc += 2;
+                }
+            }
+            else
+            {
+                log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                return true;
+            }
+            break;
+        case 0x4000:
+            if (X < CHIP8_REGISTER_COUNT)
+            {
+                if (p->V[X] != NN)
+                {
+                    p->pc += 2;
+                }
+            }
+            else
+            {
+                log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                return true;
+            }
+            break;
+        case 0x5000:
+            if (X < CHIP8_REGISTER_COUNT && Y < CHIP8_REGISTER_COUNT)
+            {
+                if (p->V[X] == p->V[Y])
+                {
+                    p->pc += 2;
+                }
+            }
+            else
+            {
+                log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                return true;
+            }
+            break;
+        case 0x6000:
+            if (X < CHIP8_REGISTER_COUNT && Y < CHIP8_REGISTER_COUNT)
+            {
+                p->V[X] = NN;
+            }
+            else
+            {
+                log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                return true;
+            }
+            break;
+        case 0x7000:
+            if (X < CHIP8_REGISTER_COUNT)
+            {
+                p->V[X] += NN;
+            }
+            else
+            {
+                log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                return true;
+            }
+            break;
+        case 0x8000:
+            switch (instruction & 0x000F)
+            {
+                case 0x0000:
+                    if (X < CHIP8_REGISTER_COUNT && Y < CHIP8_REGISTER_COUNT)
+                    {
+                        p->V[X] = p->V[Y];
+                    }
+                    else
+                    {
+                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        return true;
+                    }
+                    break;
+                case 0x0001:
+                    if (X < CHIP8_REGISTER_COUNT && Y < CHIP8_REGISTER_COUNT)
+                    {
+                        p->V[X] |= p->V[Y];
+                    }
+                    else
+                    {
+                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        return true;
+                    }
+                    break;
+                case 0x0002:
+                    if (X < CHIP8_REGISTER_COUNT && Y < CHIP8_REGISTER_COUNT)
+                    {
+                        p->V[X] &= p->V[Y];
+                    }
+                    else
+                    {
+                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        return true;
+                    }
+                    break;
+                case 0x0003:
+                    if (X < CHIP8_REGISTER_COUNT && Y < CHIP8_REGISTER_COUNT)
+                    {
+                        p->V[X] ^= p->V[Y];
+                    }
+                    else
+                    {
+                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        return true;
+                    }
+                    break;
+                case 0x0004: // TODO: update V[F]
+                    if (X < CHIP8_REGISTER_COUNT && Y < CHIP8_REGISTER_COUNT)
+                    {
+                        p->V[X] += p->V[Y];
+                    }
+                    else
+                    {
+                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        return true;
+                    }
+                    break;
+                case 0x0005: // TODO: update V[F]
+                    if (X < CHIP8_REGISTER_COUNT && Y < CHIP8_REGISTER_COUNT)
+                    {
+                        p->V[X] -= p->V[Y];
+                    }
+                    else
+                    {
+                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        return true;
+                    }
+                    break;
+                case 0x0006: // TODO: update V[F]
+                    if (X < CHIP8_REGISTER_COUNT)
+                    {
+                        p->V[X] >>= 1;
+                    }
+                    else
+                    {
+                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        return true;
+                    }
+                    break;
+                case 0x0007: // TODO: update V[F]
+                    if (X < CHIP8_REGISTER_COUNT && Y < CHIP8_REGISTER_COUNT)
+                    {
+                        p->V[X] = p->V[Y] - p->V[X];
+                    }
+                    else
+                    {
+                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        return true;
+                    }
+                    break;
+                case 0x000E: // TODO: update V[F]
+                    if (X < CHIP8_REGISTER_COUNT)
+                    {
+                        p->V[X] <<= 1;
+                    }
+                    else
+                    {
+                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        return true;
+                    }
+                    break;
+                default:
+                    log_msg(LOG_INFO, "Unknown opcode %X at PC=%X", instruction, p->pc - 2);
+                    return true;
+            }
+        case 0x9000:
+            break;
+        case 0xA000:
+            break;
+        case 0xB000:
+            break;
+        case 0xC000:
+            break;
+        case 0xD000:
+            break;
+        case 0xE000:
+            break;
+        case 0xF000:
+            break;
+        default:
+            log_msg(LOG_INFO, "Unknown opcode %X at PC=%X", instruction, p->pc - 2);
+            return true;
+    }
+
+
     return false;
+}
+
+/* Returns a combined number with pc and pc+1 instuctions */
+static inline uint16_t fetch_instruction(Chip8 *p)
+{
+    if(p->pc > CHIP8_MEM_SIZE - 1)
+    {
+        log_msg(LOG_ERROR, "trying to fetch out-of-memory commands");
+        return 0;
+    }
+    uint8_t top = p->memory[p->pc];
+    uint8_t bot = p->memory[p->pc + 1];
+    return (uint16_t)((top<<8) | bot);
 }

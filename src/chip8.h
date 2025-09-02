@@ -18,3 +18,4 @@ typedef struct {
 bool chip8_init(Chip8 *p);
 bool chip8_load_rom(Chip8 *p, char *filename);
 bool chip8_cycle(Chip8 *p);
+static inline uint16_t fetch_instruction(Chip8* p);
