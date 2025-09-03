@@ -1,6 +1,7 @@
 #include "chip8.h"
 #include "logger.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 bool chip8_init(Chip8 *p)
 {
@@ -33,9 +34,8 @@ bool chip8_cycle(Chip8 *p)
     // Decode instruction:
     uint16_t NNN = instruction & 0x0FFF;
     uint8_t NN = instruction & 0x00FF;
-    uint8_t N = instruction & 0x000F;
-    uint8_t X = instruction & 0x0F00;
-    uint8_t Y = instruction & 0X00F0;
+    uint8_t X = (uint8_t)(instruction & 0x0F00);
+    uint8_t Y = (uint8_t)(instruction & 0X00F0);
 
     switch (instruction & 0xF000)
     {
@@ -246,19 +246,105 @@ bool chip8_cycle(Chip8 *p)
                     log_msg(LOG_INFO, "Unknown opcode %X at PC=%X", instruction, p->pc - 2);
                     return true;
             }
+            break;
         case 0x9000:
+            if (X < CHIP8_REGISTER_COUNT && Y < CHIP8_REGISTER_COUNT)
+            {
+                if (p->V[X] != p->V[Y])
+                    p->pc += 2;
+            }
+            else
+            {
+                log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                return true;
+            }
             break;
         case 0xA000:
+            p->I = NNN;
             break;
         case 0xB000:
+            p->pc = p->V[0] + NNN;
             break;
         case 0xC000:
+            if (X < CHIP8_REGISTER_COUNT)
+            {
+                p->V[X] = (rand() % 255) & NN;
+            }
+            else
+            {
+                log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                return true;
+            }
             break;
         case 0xD000:
+            // TODO: Implement draw(x,y,z) function
             break;
         case 0xE000:
+            switch (instruction & 0x00FF)
+            {
+            case 0x009E:
+                // TODO: Check if key = V[X] & 0x000F is pressed
+                // if yes, p->pc += 2;
+                break;
+            case 0x00A1:
+                // TODO: Check if key = V[X] & 0x000F is pressed
+                // if no, p->pc += 2;
+                break;        
+            default:
+                log_msg(LOG_INFO, "Unknown opcode %X at PC=%X", instruction, p->pc - 2);
+                return true;
+            }
             break;
         case 0xF000:
+            switch (instruction & 0x00FF)
+            {
+            case 0x0007:
+                // TODO: Get the current value of the delay timer
+                break;
+            case 0x000A:
+                // TODO: Wait for keypress, store it in VX once pressed
+                break;
+            case 0x0015:
+                // TODO: set delay timer to VX
+                break;
+            case 0x0018:
+                // TODO: set sound timer to VX
+                break;
+            case 0x001E:
+                if (X < CHIP8_REGISTER_COUNT)
+                {
+                    p->I += p->V[X];
+                }
+                else
+                {
+                    log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                    return true;
+                }
+                break;
+            case 0x0029:
+                if (X < CHIP8_REGISTER_COUNT)
+                {
+                    p->I += p->V[X] & 0x000F; //TODO: check correctness
+                }
+                else
+                {
+                    log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                    return true;
+                }
+                break;
+            case 0x0033:
+                // TODO
+                break;
+            case 0x0055:
+                // TODO
+                break;
+            case 0x0065:
+                // TODO
+                break;
+            default:
+                log_msg(LOG_INFO, "Unknown opcode %X at PC=%X", instruction, p->pc - 2);
+                return true;
+            }
             break;
         default:
             log_msg(LOG_INFO, "Unknown opcode %X at PC=%X", instruction, p->pc - 2);
