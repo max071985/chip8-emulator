@@ -20,6 +20,7 @@ bool plat_init(Platform *p)
     flag |= plat_renderer_create(p);     // Create the renderer object
     flag |= plat_texture_create(p);      // Create the texture object
 
+    SDL_SetRenderDrawColor(p->renderer, 255, 255, 255, 255);  // Default color scheme
     if (flag)
     {
         plat_cleanup(p);
@@ -30,7 +31,7 @@ bool plat_init(Platform *p)
 
 bool plat_display_create(Platform *p)
 {
-    p->window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_LENGTH, 0);
+    p->window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
     if (!p->window)
     {
         log_msg(LOG_ERROR, "Failed to create the display window: %s", SDL_GetError());
@@ -76,4 +77,21 @@ void plat_cleanup(Platform *p)
         p->window = NULL;
     }
     SDL_QuitSubSystem(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
+}
+
+bool plat_display_clear(Platform *p)
+{
+    if (!p->renderer)
+    {
+        return true;
+    }
+    SDL_RenderClear(p->renderer);
+    SDL_RenderPresent(p->renderer);
+    return false;
+}
+
+bool plat_render(Platform *p, Chip8* vm)
+{
+    
+    return false;
 }

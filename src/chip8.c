@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static uint16_t fetch_instruction(Chip8* p);
+
 bool chip8_init(Chip8 *p)
 {
     *p = (Chip8){ .pc = CHIP8_PC_START_INDEX };
@@ -356,7 +358,7 @@ bool chip8_cycle(Chip8 *p)
 }
 
 /* Returns a combined number with pc and pc+1 instuctions */
-static inline uint16_t fetch_instruction(Chip8 *p)
+static uint16_t fetch_instruction(Chip8 *p)
 {
     if(p->pc > CHIP8_MEM_SIZE - 1)
     {

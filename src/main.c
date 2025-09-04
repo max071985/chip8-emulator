@@ -35,7 +35,9 @@ int main(int argc, char *argv[]) {
             chip8_cycle(&vm);
         }
     }
-
+    SDL_SetRenderDrawColor(plat.renderer, 255, 255, 255, 255);
+    SDL_RenderDrawLine(plat.renderer, 0,0,5,5);
+    SDL_RenderPresent(plat.renderer);
     SDL_Delay(5000); 
     main_cleanup(&plat, &vm); // Quit
     return 0;
