@@ -32,10 +32,12 @@ bool chip8_cycle(Chip8 *p)
     // Fetch:
     uint16_t instruction = fetch_instruction(p);
     p->pc += 2; // Increment pc
-
+    p->draw_flag = false;
+    
     // Decode instruction:
     uint16_t NNN = instruction & 0x0FFF;
     uint8_t NN = instruction & 0x00FF;
+    uint8_t N = instruction & 0x000F;
     uint8_t X = (uint8_t)(instruction & 0x0F00);
     uint8_t Y = (uint8_t)(instruction & 0X00F0);
 
@@ -46,6 +48,7 @@ bool chip8_cycle(Chip8 *p)
             {
             case 0x00E0:
                 // TODO: Implement display_clear() (clears the screen)
+                p->draw_flag = true;
                 break;
             case 0x00EE:
                 if(p->sp > 0)
@@ -279,7 +282,36 @@ bool chip8_cycle(Chip8 *p)
             }
             break;
         case 0xD000:
-            // TODO: Implement draw(x,y,z) function
+            uint8_t x0 = p->V[X] % CHIP8_DISPLAY_WIDTH; // Prevent overflow
+            uint8_t y0 = p->V[Y] % CHIP8_DISPLAY_HEIGHT; // Prevent overflow
+            
+            uint8_t collision = 0;
+            for (uint8_t row = 0; row < N; row++)
+            {
+                uint8_t sprite = p->memory[p->I + row];
+                uint8_t y = (uint8_t)(y0 + row);
+                if (y >= CHIP8_DISPLAY_HEIGHT)
+                    y -= CHIP8_DISPLAY_HEIGHT;
+
+                uint8_t x = x0;
+                for (uint8_t b = 0; b < 8; b++)
+                {
+                    uint8_t on = (sprite & (0x80u >> b)) ? 1u : 0u;
+                    if (on)
+                    {
+                        int idx = y * CHIP8_DISPLAY_WIDTH + x;
+                        uint8_t before = p->display[idx];
+                        uint8_t after  = (uint8_t)(before ^ 1u);
+                        if (before == 1u && after == 0u) collision = 1u;
+                        p->display[idx] = after;
+                    }
+
+                    if (++x >= CHIP8_DISPLAY_WIDTH)
+                        x = 0;
+                }
+            }
+            p->V[0xF] = collision;
+            p->draw_flag = true;
             break;
         case 0xE000:
             switch (instruction & 0x00FF)

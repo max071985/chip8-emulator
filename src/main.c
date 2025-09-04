@@ -33,11 +33,10 @@ int main(int argc, char *argv[]) {
         if (chip8_load_rom(&vm, path_to_file)) // Load the rom into the vm memory
         {
             chip8_cycle(&vm);
+            if (vm.draw_flag)
+                plat_render(&plat, &vm);
         }
     }
-    SDL_SetRenderDrawColor(plat.renderer, 255, 255, 255, 255);
-    SDL_RenderDrawLine(plat.renderer, 0,0,5,5);
-    SDL_RenderPresent(plat.renderer);
     SDL_Delay(5000); 
     main_cleanup(&plat, &vm); // Quit
     return 0;

@@ -20,7 +20,8 @@ bool plat_init(Platform *p)
     flag |= plat_renderer_create(p);     // Create the renderer object
     flag |= plat_texture_create(p);      // Create the texture object
 
-    SDL_SetRenderDrawColor(p->renderer, 255, 255, 255, 255);  // Default color scheme
+    SDL_SetRenderDrawColor(p->renderer, 0, 0, 0, 255);  // Default color scheme
+    SDL_RenderClear(p->renderer);
     if (flag)
     {
         plat_cleanup(p);
@@ -92,6 +93,11 @@ bool plat_display_clear(Platform *p)
 
 bool plat_render(Platform *p, Chip8* vm)
 {
-    
+    for (int i = 0; i < CHIP8_DISPLAY_HEIGHT*CHIP8_DISPLAY_WIDTH; i++)
+        p->pixels[i] = vm->display[i] ? 0xFFFFFFFFu : 0x000000FFu;
+    SDL_UpdateTexture(p->texture, NULL, p->pixels, CHIP8_DISPLAY_WIDTH * sizeof(uint32_t));
+    SDL_RenderClear(p->renderer);
+    SDL_RenderCopy(p->renderer, p->texture, NULL, NULL);
+    SDL_RenderPresent(p->renderer);
     return false;
 }

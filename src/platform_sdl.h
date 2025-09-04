@@ -16,6 +16,7 @@ typedef struct {
     SDL_Window* window;
     SDL_Renderer* renderer;
     SDL_Texture* texture;
+    uint32_t pixels[SCREEN_WIDTH * SCREEN_HEIGHT];
     int scale;
 } Platform;
 

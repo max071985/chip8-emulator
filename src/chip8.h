@@ -18,6 +18,7 @@ typedef struct {
     uint8_t sp;                 // Stack pointer
     uint8_t memory[CHIP8_MEM_SIZE];   // Memory array
     uint8_t display[CHIP8_DISPLAY_WIDTH * CHIP8_DISPLAY_HEIGHT];    // Display pixels 2d array
+    bool draw_flag; // true if render is needed, false otherwise
 } Chip8;
 
 bool chip8_init(Chip8 *p);

@@ -17,7 +17,7 @@ SRC_DIR   := src
 BUILD_DIR := build
 TARGET    := chip8-emulator
 
-HDRS      := $(SRC_DIR)/chip8.h $(SRC_DIR)/logger.h $(SRC_DIR)/platform_sdl.h
+HDRS      := $(SRC_DIR)/chip8.h $(SRC_DIR)/logger.h $(SRC_DIR)/platform_sdl.h $(SRC_DIR)/constants.h
 SRCS      := $(SRC_DIR)/main.c $(SRC_DIR)/chip8.c $(SRC_DIR)/logger.c $(SRC_DIR)/platform_sdl.c
 OBJS      := $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 DEPS      := $(OBJS:.o=.d)
