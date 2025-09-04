@@ -47,7 +47,8 @@ bool chip8_cycle(Chip8 *p)
             switch (instruction)
             {
             case 0x00E0:
-                // TODO: Implement display_clear() (clears the screen)
+                for (int i = 0; i < CHIP8_DISPLAY_WIDTH * CHIP8_DISPLAY_HEIGHT; i++)
+                    p->display[i] = 0;
                 p->draw_flag = true;
                 break;
             case 0x00EE:
