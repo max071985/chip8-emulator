@@ -371,10 +371,24 @@ bool chip8_cycle(Chip8 *p)
                 // TODO
                 break;
             case 0x0055:
-                // TODO
+                if (instruction & 0x0F00 >= CHIP8_REGISTER_COUNT)
+                {
+                    log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                    return true;
+                }
+                uint8_t offset = 0;
+                for (int i = 0; i < (instruction & 0x0F00); i++)
+                    p->memory[p->I + offset++] = p->V[i];
                 break;
             case 0x0065:
-                // TODO
+                if (instruction & 0x0F00 >= CHIP8_REGISTER_COUNT)
+                {
+                    log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                    return true;
+                }
+                uint8_t offset = 0;
+                for (int i = 0; i < (instruction & 0x0F00); i++)
+                    p->V[i] = p->memory[p->I + offset++];
                 break;
             default:
                 log_msg(LOG_INFO, "Unknown opcode %X at PC=%X", instruction, p->pc - 2);
