@@ -57,7 +57,7 @@ bool chip8_cycle(Chip8 *p)
                 else
                 {
                     log_msg(LOG_ERROR, "chip8-vm stack underflow at PC=%X", p->pc - 2);
-                    return true; // TODO: Maybe force quit the ROM when this happens (not sure of consequences)
+                    return true;
                 }
                 p->pc = p->stack[p->sp - 1];
                 break;
@@ -193,31 +193,36 @@ bool chip8_cycle(Chip8 *p)
                         return true;
                     }
                     break;
-                case 0x0004: // TODO: update V[F]
+                case 0x0004: {
                     if (X < CHIP8_REGISTER_COUNT && Y < CHIP8_REGISTER_COUNT)
                     {
-                        p->V[X] += p->V[Y];
+                        uint16_t sum = p->V[X] + p->V[Y];
+                        p->V[0xF] = (sum > 0xFF) ? 1 : 0;
+                        p->V[X] = (uint8_t)sum;
                     }
                     else
                     {
                         log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
                         return true;
-                    }
+                    } }
                     break;
-                case 0x0005: // TODO: update V[F]
+                case 0x0005: {
                     if (X < CHIP8_REGISTER_COUNT && Y < CHIP8_REGISTER_COUNT)
                     {
-                        p->V[X] -= p->V[Y];
+                        uint8_t borrow = p->V[X] >= p->V[Y];
+                        p->V[0xF] = borrow ? 1 : 0;
+                        p->V[X] = (uint8_t)(p->V[X] - p->V[Y]);
                     }
                     else
                     {
                         log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
                         return true;
-                    }
+                    } }
                     break;
-                case 0x0006: // TODO: update V[F]
+                case 0x0006:
                     if (X < CHIP8_REGISTER_COUNT)
                     {
+                        p->V[0xF] = p->V[X] & 0x01;
                         p->V[X] >>= 1;
                     }
                     else
@@ -226,20 +231,23 @@ bool chip8_cycle(Chip8 *p)
                         return true;
                     }
                     break;
-                case 0x0007: // TODO: update V[F]
+                case 0x0007: { 
                     if (X < CHIP8_REGISTER_COUNT && Y < CHIP8_REGISTER_COUNT)
                     {
+                        uint8_t borrow = (p->V[Y] >= p->V[X]);
+                        p->V[0xF] = borrow ? 1 : 0;
                         p->V[X] = p->V[Y] - p->V[X];
                     }
                     else
                     {
                         log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
                         return true;
-                    }
+                    } }
                     break;
-                case 0x000E: // TODO: update V[F]
+                case 0x000E:
                     if (X < CHIP8_REGISTER_COUNT)
                     {
+                        p->V[0xF] = (p->V[X] >> 7) & 0x01;
                         p->V[X] <<= 1;
                     }
                     else
@@ -282,7 +290,7 @@ bool chip8_cycle(Chip8 *p)
                 return true;
             }
             break;
-        case 0xD000:
+        case 0xD000: {
             uint8_t x0 = p->V[X] % CHIP8_DISPLAY_WIDTH; // Prevent overflow
             uint8_t y0 = p->V[Y] % CHIP8_DISPLAY_HEIGHT; // Prevent overflow
             
@@ -313,6 +321,7 @@ bool chip8_cycle(Chip8 *p)
             }
             p->V[0xF] = collision;
             p->draw_flag = true;
+            }
             break;
         case 0xE000:
             switch (instruction & 0x00FF)
@@ -334,16 +343,40 @@ bool chip8_cycle(Chip8 *p)
             switch (instruction & 0x00FF)
             {
             case 0x0007:
-                // TODO: Get the current value of the delay timer
+                if (X < CHIP8_REGISTER_COUNT)
+                {
+                    p->V[X] = p->delay_timer;
+                }
+                else
+                {
+                    log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                    return true;
+                }
                 break;
             case 0x000A:
                 // TODO: Wait for keypress, store it in VX once pressed
                 break;
             case 0x0015:
-                // TODO: set delay timer to VX
+                if (X < CHIP8_REGISTER_COUNT)
+                {
+                    p->delay_timer = p->V[X];
+                }
+                else
+                {
+                    log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                    return true;
+                }
                 break;
             case 0x0018:
-                // TODO: set sound timer to VX
+                if (X < CHIP8_REGISTER_COUNT)
+                {
+                    p->sound_timer = p->V[X];
+                }
+                else
+                {
+                    log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                    return true;
+                }
                 break;
             case 0x001E:
                 if (X < CHIP8_REGISTER_COUNT)
@@ -371,24 +404,22 @@ bool chip8_cycle(Chip8 *p)
                 // TODO
                 break;
             case 0x0055:
-                if (instruction & 0x0F00 >= CHIP8_REGISTER_COUNT)
+                if (X >= CHIP8_REGISTER_COUNT)
                 {
                     log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
                     return true;
                 }
-                uint8_t offset = 0;
-                for (int i = 0; i < (instruction & 0x0F00); i++)
-                    p->memory[p->I + offset++] = p->V[i];
+                for (int i = 0; i < X; i++)
+                    p->memory[p->I + i] = p->V[i];
                 break;
             case 0x0065:
-                if (instruction & 0x0F00 >= CHIP8_REGISTER_COUNT)
+                if (X >= CHIP8_REGISTER_COUNT)
                 {
                     log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
                     return true;
                 }
-                uint8_t offset = 0;
-                for (int i = 0; i < (instruction & 0x0F00); i++)
-                    p->V[i] = p->memory[p->I + offset++];
+                for (int i = 0; i < X; i++)
+                    p->V[i] = p->memory[p->I + i];
                 break;
             default:
                 log_msg(LOG_INFO, "Unknown opcode %X at PC=%X", instruction, p->pc - 2);

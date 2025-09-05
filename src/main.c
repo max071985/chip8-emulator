@@ -30,11 +30,13 @@ int main(int argc, char *argv[]) {
             main_cleanup(&plat, &vm); // On failure, clear and exit
             exit(1);
         }
-        if (chip8_load_rom(&vm, path_to_file)) // Load the rom into the vm memory
+        if (!chip8_load_rom(&vm, path_to_file)) // Load the rom into the vm memory
         {
-            chip8_cycle(&vm);
-            if (vm.draw_flag)
-                plat_render(&plat, &vm);
+            while (!chip8_cycle(&vm))
+            {
+                if (vm.draw_flag)
+                    plat_render(&plat, &vm);
+            }
         }
     }
     SDL_Delay(5000); 
