@@ -2,6 +2,7 @@
 #define CHIP8_H
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "constants.h"
 
 #define CHIP8_MEM_SIZE 4096

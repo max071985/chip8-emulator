@@ -413,6 +413,9 @@ bool chip8_cycle(Chip8 *p)
                 break;
             case 0x0033:
                 // TODO
+                p->memory[p->I] = p->V[X] / 100;
+                p->memory[p->I + 1] = (p->V[X] / 10) % 10;
+                p->memory[p->I + 2] = p->V[X] % 10;
                 break;
             case 0x0055:
                 if (X >= CHIP8_REGISTER_COUNT)
