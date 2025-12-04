@@ -49,6 +49,7 @@ bool plat_renderer_create(Platform *p)
         log_msg(LOG_ERROR, "Failed to create the renderer: %s", SDL_GetError());
         return true;
     }
+    SDL_RenderSetLogicalSize(p->renderer, CHIP8_DISPLAY_WIDTH, CHIP8_DISPLAY_HEIGHT);
     return false;
 }
 

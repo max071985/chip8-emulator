@@ -3,13 +3,17 @@
 #include "platform_sdl.h"
 #include "logger.h"
 
-#define EMU_FREQUENCY 16 // ~60 hz timer
+#define TIMER_FREQ 16 // ~60 hz timer
+#define CPU_FREQ 200.0 // CPU freq
+#define CPU_CMDS 5000.0 // Commands per cycle
 
 void main_cleanup(Platform *plat, Chip8 *vm);
 
 int main(int argc, char *argv[]) {
     Platform plat = {0};
     Chip8 vm = {0};
+
+    const double cpu_delay = CPU_CMDS / CPU_FREQ;
 
     if (plat_init(&plat))   // Initialize the SDL2 platform
     {
@@ -35,8 +39,10 @@ int main(int argc, char *argv[]) {
         if (!chip8_load_rom(&vm, path_to_file)) // Load the rom into the vm memory
         {
             bool running = true;
-            uint64_t last_tick = SDL_GetTicks();
-            while (!chip8_cycle(&vm) && running)
+            uint64_t timer_last_tick = SDL_GetTicks();
+            uint64_t cpu_last_tick = SDL_GetTicks();
+
+            while (running)
             {
                 SDL_Event e;
                 while (SDL_PollEvent(&e))
@@ -51,17 +57,26 @@ int main(int argc, char *argv[]) {
                         if (e.type == SDL_KEYUP)     vm.keys[key] = 0;
                     }
                 }
-                if (vm.draw_flag)
-                    plat_render(&plat, &vm);
-                
-                // Timer tick down
                 uint64_t current_tick = SDL_GetTicks();
-                if (current_tick - last_tick >= EMU_FREQUENCY)
+                
+                if (current_tick - cpu_last_tick >= cpu_delay)
+                {
+                    chip8_cycle(&vm);
+                    cpu_last_tick = current_tick;
+                }
+
+                // Update timers
+                if (current_tick - timer_last_tick >= TIMER_FREQ)
                 {
                     if (vm.delay_timer) vm.delay_timer--;
                     if (vm.sound_timer) vm.sound_timer--;
-                    last_tick = current_tick;
+                    timer_last_tick = current_tick;
                 }
+
+                // Render when needed
+                if (vm.draw_flag)
+                    plat_render(&plat, &vm);
+                
             }
         }
     }

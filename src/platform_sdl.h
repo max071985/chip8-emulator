@@ -7,8 +7,9 @@
 
 #define WINDOW_TITLE "test window"
 // Map platform sizes to core CHIP-8 display dimensions
-#define SCREEN_WIDTH  CHIP8_DISPLAY_WIDTH
-#define SCREEN_HEIGHT CHIP8_DISPLAY_HEIGHT
+#define WINDOW_SCALE 10
+#define SCREEN_WIDTH  (CHIP8_DISPLAY_WIDTH * WINDOW_SCALE)
+#define SCREEN_HEIGHT (CHIP8_DISPLAY_HEIGHT * WINDOW_SCALE)
 #define TEXTURE_WIDTH  CHIP8_DISPLAY_WIDTH
 #define TEXTURE_HEIGHT CHIP8_DISPLAY_HEIGHT
 
@@ -16,7 +17,7 @@ typedef struct {
     SDL_Window* window;
     SDL_Renderer* renderer;
     SDL_Texture* texture;
-    uint32_t pixels[SCREEN_WIDTH * SCREEN_HEIGHT];
+    uint32_t pixels[TEXTURE_WIDTH * TEXTURE_HEIGHT];
     int scale;
 } Platform;
 

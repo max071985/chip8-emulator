@@ -10,6 +10,7 @@
 #define CHIP8_REGISTER_COUNT 16
 #define CHIP8_PC_START_INDEX 0x200
 #define CHIP8_KEY_COUNT 16
+#define FONT_BASE 0x050
 
 /* Emulator struct */
 typedef struct {

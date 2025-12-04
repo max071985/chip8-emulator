@@ -5,9 +5,37 @@
 
 static uint16_t fetch_instruction(Chip8* p);
 
+static const uint8_t chip8_font[80] = {
+    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+    0x20, 0x60, 0x20, 0x20, 0x70, // 1
+    0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+    0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+    0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+    0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+    0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+    0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+    0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+    0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+    0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+    0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+    0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+    0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+    0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+    0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+};
+
+
 bool chip8_init(Chip8 *p)
 {
     *p = (Chip8){ .pc = CHIP8_PC_START_INDEX, .keys = {0} };
+
+    // Load fontset into memory starting at 0x050
+    for (int i = 0; i < 80; i++)
+    {
+        p->memory[0x050 + i] = chip8_font[i];
+    }
+
+
     return false;
 }
 
@@ -49,14 +77,13 @@ bool chip8_cycle(Chip8 *p)
                 p->draw_flag = true;
                 break;
             case 0x00EE:
-                if(p->sp > 0)
-                    p->sp--;
-                else
+                if(p->sp == 0)
                 {
                     log_msg(LOG_ERROR, "chip8-vm stack underflow at PC=%X", p->pc - 2);
                     return true;
                 }
-                p->pc = p->stack[p->sp - 1];
+                p->sp--;
+                p->pc = p->stack[p->sp];
                 break;
             default:
                 break;
@@ -108,6 +135,11 @@ bool chip8_cycle(Chip8 *p)
             }
             break;
         case 0x5000:
+            if ((instruction & 0x000F) != 0) 
+            {
+                log_msg(LOG_ERROR, "illegal opcode %X at PC=%X", instruction, p->pc-2);
+                return true;
+            }
             if (X < CHIP8_REGISTER_COUNT && Y < CHIP8_REGISTER_COUNT)
             {
                 if (p->V[X] == p->V[Y])
@@ -122,7 +154,7 @@ bool chip8_cycle(Chip8 *p)
             }
             break;
         case 0x6000:
-            if (X < CHIP8_REGISTER_COUNT && Y < CHIP8_REGISTER_COUNT)
+            if (X < CHIP8_REGISTER_COUNT)
             {
                 p->V[X] = NN;
             }
@@ -219,8 +251,10 @@ bool chip8_cycle(Chip8 *p)
                 case 0x0006:
                     if (X < CHIP8_REGISTER_COUNT)
                     {
+                        //p->V[0xF] = p->V[X] & 0x01;
+                        //p->V[X] >>= 1;
                         p->V[0xF] = p->V[X] & 0x01;
-                        p->V[X] >>= 1;
+                        p->V[X] = p->V[X] >> 1;
                     }
                     else
                     {
@@ -244,8 +278,10 @@ bool chip8_cycle(Chip8 *p)
                 case 0x000E:
                     if (X < CHIP8_REGISTER_COUNT)
                     {
+                        //p->V[0xF] = (p->V[X] >> 7) & 0x01;
+                        //p->V[X] <<= 1;
                         p->V[0xF] = (p->V[X] >> 7) & 0x01;
-                        p->V[X] <<= 1;
+                        p->V[X] = p->V[X] << 1;
                     }
                     else
                     {
@@ -259,6 +295,11 @@ bool chip8_cycle(Chip8 *p)
             }
             break;
         case 0x9000:
+            if ((instruction & 0x000F) != 0) 
+            {
+                log_msg(LOG_ERROR, "illegal opcode %X at PC=%X", instruction, p->pc-2);
+                return true;
+            }
             if (X < CHIP8_REGISTER_COUNT && Y < CHIP8_REGISTER_COUNT)
             {
                 if (p->V[X] != p->V[Y])
@@ -279,7 +320,7 @@ bool chip8_cycle(Chip8 *p)
         case 0xC000:
             if (X < CHIP8_REGISTER_COUNT)
             {
-                p->V[X] = (rand() % 255) & NN;
+                p->V[X] = (rand() & 0xFF) & NN;
             }
             else
             {
@@ -288,32 +329,34 @@ bool chip8_cycle(Chip8 *p)
             }
             break;
         case 0xD000: {
-            uint8_t x0 = p->V[X] % CHIP8_DISPLAY_WIDTH; // Prevent overflow
-            uint8_t y0 = p->V[Y] % CHIP8_DISPLAY_HEIGHT; // Prevent overflow
+            uint8_t x0 = p->V[X]; 
+            uint8_t y0 = p->V[Y]; 
             
             uint8_t collision = 0;
             for (uint8_t row = 0; row < N; row++)
             {
-                uint8_t sprite = p->memory[p->I + row];
-                uint8_t y = (uint8_t)(y0 + row);
-                if (y >= CHIP8_DISPLAY_HEIGHT)
-                    y -= CHIP8_DISPLAY_HEIGHT;
-
-                uint8_t x = x0;
-                for (uint8_t b = 0; b < 8; b++)
+                if (p->I + row >= CHIP8_MEM_SIZE) 
                 {
-                    uint8_t on = (sprite & (0x80u >> b)) ? 1u : 0u;
-                    if (on)
+                    log_msg(LOG_ERROR, "sprite read OOB at PC=%X", p->pc-2);
+                    return true;
+                }
+
+                uint8_t sprite = p->memory[p->I + row];
+                for (uint8_t col = 0; col < 8; col++)
+                {
+                    if (sprite & (0x80u >> col))
                     {
+                        uint8_t x = (x0 + col) % CHIP8_DISPLAY_WIDTH;
+                        uint8_t y = (y0 + row) % CHIP8_DISPLAY_HEIGHT;
+
                         int idx = y * CHIP8_DISPLAY_WIDTH + x;
+
                         uint8_t before = p->display[idx];
-                        uint8_t after  = (uint8_t)(before ^ 1u);
-                        if (before == 1u && after == 0u) collision = 1u;
+                        uint8_t after  = before ^ 1u;
+
+                        if (before && !after) collision = 1;
                         p->display[idx] = after;
                     }
-
-                    if (++x >= CHIP8_DISPLAY_WIDTH)
-                        x = 0;
                 }
             }
             p->V[0xF] = collision;
@@ -359,7 +402,7 @@ bool chip8_cycle(Chip8 *p)
                 {
                     if (p->keys[i])
                     {
-                        p->V[X] = p->keys[i];
+                        p->V[X] = i;
                         pressed = true;
                         break;
                     }
@@ -403,7 +446,7 @@ bool chip8_cycle(Chip8 *p)
             case 0x0029:
                 if (X < CHIP8_REGISTER_COUNT)
                 {
-                    p->I += p->V[X] & 0x000F; //TODO: check correctness
+                    p->I = FONT_BASE + (p->V[X] * 5); //TODO: check correctness
                 }
                 else
                 {
@@ -423,8 +466,9 @@ bool chip8_cycle(Chip8 *p)
                     log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                     return true;
                 }
-                for (int i = 0; i < X; i++)
+                for (int i = 0; i <= X; i++)
                     p->memory[p->I + i] = p->V[i];
+                //p->I += X + 1; // LEGACY
                 break;
             case 0x0065:
                 if (X >= CHIP8_REGISTER_COUNT)
@@ -432,8 +476,9 @@ bool chip8_cycle(Chip8 *p)
                     log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                     return true;
                 }
-                for (int i = 0; i < X; i++)
+                for (int i = 0; i <= X; i++)
                     p->V[i] = p->memory[p->I + i];
+                //p->I += X + 1; // LEGACY
                 break;
             default:
                 log_msg(LOG_INFO, "Unknown opcode %X at PC=%X", instruction, p->pc - 2);
