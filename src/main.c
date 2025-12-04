@@ -3,6 +3,8 @@
 #include "platform_sdl.h"
 #include "logger.h"
 
+#define EMU_FREQUENCY 16 // ~60 hz timer
+
 void main_cleanup(Platform *plat, Chip8 *vm);
 
 int main(int argc, char *argv[]) {
@@ -33,6 +35,7 @@ int main(int argc, char *argv[]) {
         if (!chip8_load_rom(&vm, path_to_file)) // Load the rom into the vm memory
         {
             bool running = true;
+            uint64_t last_tick = SDL_GetTicks();
             while (!chip8_cycle(&vm) && running)
             {
                 SDL_Event e;
@@ -50,6 +53,15 @@ int main(int argc, char *argv[]) {
                 }
                 if (vm.draw_flag)
                     plat_render(&plat, &vm);
+                
+                // Timer tick down
+                uint64_t current_tick = SDL_GetTicks();
+                if (current_tick - last_tick >= EMU_FREQUENCY)
+                {
+                    if (vm.delay_timer) vm.delay_timer--;
+                    if (vm.sound_timer) vm.sound_timer--;
+                    last_tick = current_tick;
+                }
             }
         }
     }

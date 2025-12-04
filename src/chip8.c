@@ -35,8 +35,8 @@ bool chip8_cycle(Chip8 *p)
     uint16_t NNN = instruction & 0x0FFF;
     uint8_t NN = instruction & 0x00FF;
     uint8_t N = instruction & 0x000F;
-    uint8_t X = (uint8_t)(instruction & 0x0F00);
-    uint8_t Y = (uint8_t)(instruction & 0X00F0);
+    uint8_t X = (uint8_t)(instruction & 0x0F00) >> 8;
+    uint8_t Y = (uint8_t)(instruction & 0X00F0) >> 4;
 
     switch (instruction & 0xF000)
     {
@@ -89,7 +89,7 @@ bool chip8_cycle(Chip8 *p)
             }
             else
             {
-                log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                 return true;
             }
             break;
@@ -103,7 +103,7 @@ bool chip8_cycle(Chip8 *p)
             }
             else
             {
-                log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                 return true;
             }
             break;
@@ -117,7 +117,7 @@ bool chip8_cycle(Chip8 *p)
             }
             else
             {
-                log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                 return true;
             }
             break;
@@ -128,7 +128,7 @@ bool chip8_cycle(Chip8 *p)
             }
             else
             {
-                log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                 return true;
             }
             break;
@@ -139,7 +139,7 @@ bool chip8_cycle(Chip8 *p)
             }
             else
             {
-                log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                 return true;
             }
             break;
@@ -153,7 +153,7 @@ bool chip8_cycle(Chip8 *p)
                     }
                     else
                     {
-                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                         return true;
                     }
                     break;
@@ -164,7 +164,7 @@ bool chip8_cycle(Chip8 *p)
                     }
                     else
                     {
-                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                         return true;
                     }
                     break;
@@ -175,7 +175,7 @@ bool chip8_cycle(Chip8 *p)
                     }
                     else
                     {
-                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                         return true;
                     }
                     break;
@@ -186,7 +186,7 @@ bool chip8_cycle(Chip8 *p)
                     }
                     else
                     {
-                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                         return true;
                     }
                     break;
@@ -199,7 +199,7 @@ bool chip8_cycle(Chip8 *p)
                     }
                     else
                     {
-                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                         return true;
                     } }
                     break;
@@ -212,7 +212,7 @@ bool chip8_cycle(Chip8 *p)
                     }
                     else
                     {
-                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                         return true;
                     } }
                     break;
@@ -224,7 +224,7 @@ bool chip8_cycle(Chip8 *p)
                     }
                     else
                     {
-                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                         return true;
                     }
                     break;
@@ -237,7 +237,7 @@ bool chip8_cycle(Chip8 *p)
                     }
                     else
                     {
-                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                         return true;
                     } }
                     break;
@@ -249,7 +249,7 @@ bool chip8_cycle(Chip8 *p)
                     }
                     else
                     {
-                        log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                        log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                         return true;
                     }
                     break;
@@ -266,7 +266,7 @@ bool chip8_cycle(Chip8 *p)
             }
             else
             {
-                log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                 return true;
             }
             break;
@@ -283,7 +283,7 @@ bool chip8_cycle(Chip8 *p)
             }
             else
             {
-                log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                 return true;
             }
             break;
@@ -348,7 +348,7 @@ bool chip8_cycle(Chip8 *p)
                 }
                 else
                 {
-                    log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                    log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                     return true;
                 }
                 break;
@@ -374,7 +374,7 @@ bool chip8_cycle(Chip8 *p)
                 }
                 else
                 {
-                    log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                    log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                     return true;
                 }
                 break;
@@ -385,7 +385,7 @@ bool chip8_cycle(Chip8 *p)
                 }
                 else
                 {
-                    log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                    log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                     return true;
                 }
                 break;
@@ -396,7 +396,7 @@ bool chip8_cycle(Chip8 *p)
                 }
                 else
                 {
-                    log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                    log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                     return true;
                 }
                 break;
@@ -407,7 +407,7 @@ bool chip8_cycle(Chip8 *p)
                 }
                 else
                 {
-                    log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                    log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                     return true;
                 }
                 break;
@@ -420,7 +420,7 @@ bool chip8_cycle(Chip8 *p)
             case 0x0055:
                 if (X >= CHIP8_REGISTER_COUNT)
                 {
-                    log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                    log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                     return true;
                 }
                 for (int i = 0; i < X; i++)
@@ -429,7 +429,7 @@ bool chip8_cycle(Chip8 *p)
             case 0x0065:
                 if (X >= CHIP8_REGISTER_COUNT)
                 {
-                    log_msg(LOG_ERROR, "register index out-of-range at PC=%X", p->pc - 2);
+                    log_msg(LOG_ERROR, "[instruciton: %i] register index out-of-range at PC=%X", instruction, p->pc - 2);
                     return true;
                 }
                 for (int i = 0; i < X; i++)
