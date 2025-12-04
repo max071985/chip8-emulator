@@ -27,5 +27,6 @@ bool plat_texture_create(Platform *p);
 void plat_cleanup(Platform *p);
 bool plat_display_clear(Platform *p);
 bool plat_render(Platform *p, Chip8* vm);
+int map_key(SDL_Keycode k);
 
 #endif

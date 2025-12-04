@@ -7,7 +7,7 @@ static uint16_t fetch_instruction(Chip8* p);
 
 bool chip8_init(Chip8 *p)
 {
-    *p = (Chip8){ .pc = CHIP8_PC_START_INDEX };
+    *p = (Chip8){ .pc = CHIP8_PC_START_INDEX, .keys = {0} };
     return false;
 }
 
@@ -326,10 +326,12 @@ bool chip8_cycle(Chip8 *p)
             case 0x009E:
                 // TODO: Check if key = V[X] & 0x000F is pressed
                 // if yes, p->pc += 2;
+                if (p->keys[p->V[X] & 0x000F]) p->pc += 2;
                 break;
             case 0x00A1:
                 // TODO: Check if key = V[X] & 0x000F is pressed
                 // if no, p->pc += 2;
+                if (!p->keys[p->V[X] & 0x000F]) p->pc += 2;
                 break;        
             default:
                 log_msg(LOG_INFO, "Unknown opcode %X at PC=%X", instruction, p->pc - 2);
@@ -352,6 +354,18 @@ bool chip8_cycle(Chip8 *p)
                 break;
             case 0x000A:
                 // TODO: Wait for keypress, store it in VX once pressed
+                bool pressed = false;
+                for (int i = 0; i < CHIP8_KEY_COUNT; i++)
+                {
+                    if (p->keys[i])
+                    {
+                        p->V[X] = p->keys[i];
+                        pressed = true;
+                        break;
+                    }
+                }
+                if (!pressed) // Wait for key press (repeat command)
+                    p->pc -= 2;
                 break;
             case 0x0015:
                 if (X < CHIP8_REGISTER_COUNT)

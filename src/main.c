@@ -40,6 +40,13 @@ int main(int argc, char *argv[]) {
                 {
                     if (e.type == SDL_QUIT) running = false;
                     if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) running = false;
+                    // Reads input key and appends it to the vm's virtual keyboard
+                    int key = map_key(e.key.keysym.sym);
+                    if (key != -1)
+                    {
+                        if (e.type == SDL_KEYDOWN)   vm.keys[key] = 1;
+                        if (e.type == SDL_KEYUP)     vm.keys[key] = 0;
+                    }
                 }
                 if (vm.draw_flag)
                     plat_render(&plat, &vm);
