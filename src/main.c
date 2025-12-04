@@ -32,14 +32,20 @@ int main(int argc, char *argv[]) {
         }
         if (!chip8_load_rom(&vm, path_to_file)) // Load the rom into the vm memory
         {
-            while (!chip8_cycle(&vm))
+            bool running = true;
+            while (!chip8_cycle(&vm) && running)
             {
+                SDL_Event e;
+                while (SDL_PollEvent(&e))
+                {
+                    if (e.type == SDL_QUIT) running = false;
+                    if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) running = false;
+                }
                 if (vm.draw_flag)
                     plat_render(&plat, &vm);
             }
         }
     }
-    SDL_Delay(5000); 
     main_cleanup(&plat, &vm); // Quit
     return 0;
 }

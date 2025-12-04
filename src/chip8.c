@@ -1,7 +1,7 @@
-#include "chip8.h"
-#include "logger.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "chip8.h"
+#include "logger.h"
 
 static uint16_t fetch_instruction(Chip8* p);
 
@@ -26,9 +26,6 @@ bool chip8_load_rom(Chip8 *p, char *filename)
 
 bool chip8_cycle(Chip8 *p)
 {
-    // TODO: Implement cycle loop
-    // fetch/decode/execute + update timers
-    
     // Fetch:
     uint16_t instruction = fetch_instruction(p);
     p->pc += 2; // Increment pc
