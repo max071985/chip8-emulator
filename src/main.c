@@ -4,8 +4,8 @@
 #include "logger.h"
 
 #define TIMER_FREQ 16 // ~60 hz timer
-#define CPU_FREQ 200.0 // CPU freq
-#define CPU_CMDS 5000.0 // Commands per cycle
+#define CPU_FREQ 500.0 // CPU freq
+#define CPU_CMDS 1000.0 // Commands per cycle
 
 void main_cleanup(Platform *plat, Chip8 *vm);
 

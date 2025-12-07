@@ -63,8 +63,8 @@ bool chip8_cycle(Chip8 *p)
     uint16_t NNN = instruction & 0x0FFF;
     uint8_t NN = instruction & 0x00FF;
     uint8_t N = instruction & 0x000F;
-    uint8_t X = (uint8_t)(instruction & 0x0F00) >> 8;
-    uint8_t Y = (uint8_t)(instruction & 0X00F0) >> 4;
+    uint8_t X = (instruction & 0x0F00) >> 8;
+    uint8_t Y = (instruction & 0X00F0) >> 4;
 
     switch (instruction & 0xF000)
     {
