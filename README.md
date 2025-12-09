@@ -1,6 +1,6 @@
 # CHIP-8 Emulator (SDL2)
 
-A simple CHIP-8 interpreter with SDL2 rendering and keyboard input. Targets ~500 Hz CPU cycles and ~60 Hz delay/sound timers; can run one or multiple ROMs from the CLI.
+A simple CHIP-8 emulator with SDL2 rendering and keyboard input. Targets ~500 Hz CPU cycles and ~60 Hz delay/sound timers; can run one or multiple ROMs from the CLI.
 
 ## Usage
 - Build
