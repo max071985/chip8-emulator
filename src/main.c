@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
         }
     }
     main_cleanup(&plat, &vm); // Cleanup before termination
-    return 0;
+    exit(0);
 }
 
 // Main cleanup function
