@@ -2,6 +2,11 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+/*
+    logger.c outputs log msgs based on current logging level (current_level)
+    - logging levels are declared in logger.h
+*/
+
 static LogLevel current_level = LOG_INFO;
 
 void log_set_level(LogLevel level) {
@@ -18,6 +23,9 @@ static const char* level_to_string(LogLevel level) {
     }
 }
 
+/*
+    Writes to stderr if the error is appropriate to the declared logging level.
+*/
 void log_msg(LogLevel level, const char* fmt, ...) {
     if (level < current_level) return;  // respect threshold
 

@@ -3,6 +3,7 @@
 
 #include <stdarg.h>
 
+// Log levels
 typedef enum {
     LOG_DEBUG,
     LOG_INFO,

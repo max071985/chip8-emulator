@@ -1,6 +1,13 @@
 #include "platform_sdl.h"
 #include "logger.h"
 
+/*
+    responsible for the SDL2 platform operations:
+    - Initializes and builds the window
+    - Renders VM states
+    - Converts user input to chip-8 standard
+*/
+
 bool plat_init(Platform *p)
 {
     bool flag = false;
@@ -103,6 +110,11 @@ bool plat_render(Platform *p, Chip8* vm)
     return false;
 }
 
+/* Maps the layouts:
+    1 2 3 4 ->  1 2 3 C
+    q w e r ->  4 5 6 D
+    a s d f ->  7 8 9 E
+    z x c v ->  A 0 B F */
 int map_key(SDL_Keycode k) {
     switch (k) 
     {

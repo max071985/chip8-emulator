@@ -3,6 +3,10 @@
 #include "chip8.h"
 #include "logger.h"
 
+/* chip8.c is responsible to handle the chip-8 VM-
+    Initializes the vm and translates + executes opcodes
+    - This is a legacy chip-8 standard */
+
 static uint16_t fetch_instruction(Chip8* p);
 
 static const uint8_t chip8_font[80] = {
@@ -24,15 +28,16 @@ static const uint8_t chip8_font[80] = {
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
-
+/* Initializes the VM with default values */
 bool chip8_init(Chip8 *p)
 {
+    // Maybe first set all bits to 0 and then check start index? not sure if required- but will be safer
     *p = (Chip8){ .pc = CHIP8_PC_START_INDEX, .keys = {0} };
 
     // Load fontset into memory starting at 0x050
     for (int i = 0; i < 80; i++)
     {
-        p->memory[0x050 + i] = chip8_font[i];
+        p->memory[FONT_BASE + i] = chip8_font[i];
     }
 
 
@@ -52,6 +57,8 @@ bool chip8_load_rom(Chip8 *p, char *filename)
     return false;
 }
 
+/* Fetches the next instruction from vm's memory at pc (program counter) and executes it, updates the vm values (p) accordingly.
+Returns: false if a command is invalid, true otherwise */
 bool chip8_cycle(Chip8 *p)
 {
     // Fetch:
@@ -367,13 +374,9 @@ bool chip8_cycle(Chip8 *p)
             switch (instruction & 0x00FF)
             {
             case 0x009E:
-                // TODO: Check if key = V[X] & 0x000F is pressed
-                // if yes, p->pc += 2;
                 if (p->keys[p->V[X] & 0x000F]) p->pc += 2;
                 break;
             case 0x00A1:
-                // TODO: Check if key = V[X] & 0x000F is pressed
-                // if no, p->pc += 2;
                 if (!p->keys[p->V[X] & 0x000F]) p->pc += 2;
                 break;        
             default:
@@ -396,7 +399,6 @@ bool chip8_cycle(Chip8 *p)
                 }
                 break;
             case 0x000A:
-                // TODO: Wait for keypress, store it in VX once pressed
                 bool pressed = false;
                 for (int i = 0; i < CHIP8_KEY_COUNT; i++)
                 {
@@ -407,7 +409,7 @@ bool chip8_cycle(Chip8 *p)
                         break;
                     }
                 }
-                if (!pressed) // Wait for key press (repeat command)
+                if (!pressed) // a key is not pressed - repeat command until it is.
                     p->pc -= 2;
                 break;
             case 0x0015:
@@ -446,7 +448,7 @@ bool chip8_cycle(Chip8 *p)
             case 0x0029:
                 if (X < CHIP8_REGISTER_COUNT)
                 {
-                    p->I = FONT_BASE + (p->V[X] * 5); //TODO: check correctness
+                    p->I = FONT_BASE + (p->V[X] * 5);
                 }
                 else
                 {
@@ -455,7 +457,6 @@ bool chip8_cycle(Chip8 *p)
                 }
                 break;
             case 0x0033:
-                // TODO
                 p->memory[p->I] = p->V[X] / 100;
                 p->memory[p->I + 1] = (p->V[X] / 10) % 10;
                 p->memory[p->I + 2] = p->V[X] % 10;

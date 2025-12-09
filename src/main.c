@@ -3,8 +3,13 @@
 #include "platform_sdl.h"
 #include "logger.h"
 
-#define TIMER_FREQ 16 // ~60 hz timer
-#define CPU_FREQ 500.0 // CPU freq
+/* Chip8 entry point
+    Responsible for initializing the SDL, the VM and running the main command loop
+    Program usage: ./chip8-emulator path_to_rom [path_to_rom_2] ... */
+
+// Main loop + timer delay constants
+#define TIMER_FREQ 16   // ~60 hz timer
+#define CPU_FREQ 500.0  // CPU freq
 #define CPU_CMDS 1000.0 // Commands per cycle
 
 void main_cleanup(Platform *plat, Chip8 *vm);
@@ -13,7 +18,7 @@ int main(int argc, char *argv[]) {
     Platform plat = {0};
     Chip8 vm = {0};
 
-    const double cpu_delay = CPU_CMDS / CPU_FREQ;
+    const double cpu_delay = CPU_CMDS / CPU_FREQ;   // The delay between each command the vm executes
 
     if (plat_init(&plat))   // Initialize the SDL2 platform
     {
@@ -38,10 +43,20 @@ int main(int argc, char *argv[]) {
         }
         if (!chip8_load_rom(&vm, path_to_file)) // Load the rom into the vm memory
         {
-            bool running = true;
+            bool running = true;    // Keyboard interrupt flag
             uint64_t timer_last_tick = SDL_GetTicks();
             uint64_t cpu_last_tick = SDL_GetTicks();
 
+            /*
+                Keyboard input event loop - Checks for early interrupts and updates vm's key[] array if a key is pressed
+                    - Press "ESC" to terminate the program early
+                    - Chip8 keyboard abides by the:
+                            1 2 3 4 ->  1 2 3 C
+                            q w e r ->  4 5 6 D
+                            a s d f ->  7 8 9 E
+                            z x c v ->  A 0 B F
+                      layout. the keys on the left are mapped to the keys in the standard chip8 keyboard (right). 
+            */
             while (running)
             {
                 SDL_Event e;
@@ -49,7 +64,7 @@ int main(int argc, char *argv[]) {
                 {
                     if (e.type == SDL_QUIT) running = false;
                     if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) running = false;
-                    // Reads input key and appends it to the vm's virtual keyboard
+
                     int key = map_key(e.key.keysym.sym);
                     if (key != -1)
                     {
@@ -65,7 +80,7 @@ int main(int argc, char *argv[]) {
                     cpu_last_tick = current_tick;
                 }
 
-                // Update timers
+                // Update timer ticks
                 if (current_tick - timer_last_tick >= TIMER_FREQ)
                 {
                     if (vm.delay_timer) vm.delay_timer--;
@@ -73,17 +88,18 @@ int main(int argc, char *argv[]) {
                     timer_last_tick = current_tick;
                 }
 
-                // Render when needed
+                // Invokes render if the executed opcode triggers a render request (draw_flag is true)
                 if (vm.draw_flag)
                     plat_render(&plat, &vm);
                 
             }
         }
     }
-    main_cleanup(&plat, &vm); // Quit
+    main_cleanup(&plat, &vm); // Cleanup before termination
     return 0;
 }
 
+// Main cleanup function
 void main_cleanup(Platform *plat, Chip8 *vm)
 {
     if (plat)
