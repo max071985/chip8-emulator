@@ -8,9 +8,8 @@
     Program usage: ./chip8-emulator path_to_rom [path_to_rom_2] ... */
 
 // Main loop + timer delay constants
-#define TIMER_FREQ 16   // ~60 hz timer
-#define CPU_FREQ 500.0  // CPU freq
-#define CPU_CMDS 1000.0 // Commands per cycle
+#define TIMER_DELAY 16   // ~60 hz timer
+#define CPU_FREQ 500.0  // Target speed: 500hz
 
 void main_cleanup(Platform *plat, Chip8 *vm);
 
@@ -18,7 +17,11 @@ int main(int argc, char *argv[]) {
     Platform plat = {0};
     Chip8 vm = {0};
 
-    const double cpu_delay = CPU_CMDS / CPU_FREQ;   // The delay between each command the vm executes
+    /* The delay between each command the vm executes
+    Formula: 1000(ms) / TARGET_FREQUENCY (Hz)
+    In our case, we will execute 1 command per 2ms, roughly targeting 500Hz cpu emulation.
+    */
+    const double cpu_delay = 1000.0 / CPU_FREQ;
 
     if (plat_init(&plat))   // Initialize the SDL2 platform
     {
@@ -81,7 +84,7 @@ int main(int argc, char *argv[]) {
                 }
 
                 // Update timer ticks
-                if (current_tick - timer_last_tick >= TIMER_FREQ)
+                if (current_tick - timer_last_tick >= TIMER_DELAY)
                 {
                     if (vm.delay_timer) vm.delay_timer--;
                     if (vm.sound_timer) vm.sound_timer--;
